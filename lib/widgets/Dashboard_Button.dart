@@ -61,6 +61,7 @@ class DashboardButton extends StatelessWidget{
                   fontSize: screenWidth * 0.0525, // Responsive font size
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
+                  fontFamily: 'Inter',
                 ),
                 overflow: TextOverflow.ellipsis, // Handle long text
               ),
