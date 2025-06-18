@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+
+class PasswordScreen extends StatefulWidget {
+  const PasswordScreen({Key? key}) : super(key: key);
+
+  @override
+  State<PasswordScreen> createState() => _PasswordScreenState();
+}
+
+class _PasswordScreenState extends State<PasswordScreen> {
+  final TextEditingController _passwordController = TextEditingController();
+
+  // Set admin PIN here (can be later fetched from a secure source)
+  final String _adminPin = "000000";
+
+  // Function to check the password and navigate
+  void _validatePassword() {
+    if (_passwordController.text == _adminPin) {
+      Navigator.pushNamed(context, '/dashboard_admin'); // Navigate to admin dashboard
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Incorrect password')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Get screen width and height for responsive sizing
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final double fontScale = MediaQuery.of(context).textScaleFactor;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E1E1E), // Dark background color
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: true, // center align the title
+        title: const Text(
+          'ADMIN OPTIONS',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Inter',
+            fontSize: 24, // 24 logical pixels
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Icon(Icons.account_circle_outlined, color: Colors.white),
+          ),
+        ],
+      ),
+
+      // Main content
+      body: Column(
+        children: [
+          SizedBox(height: screenHeight * 0.35), // Spacer
+
+          // Password TextField
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+            child: SizedBox(
+              height: 53,
+              child: TextField(
+                controller: _passwordController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Inter',
+                ),
+                decoration: InputDecoration(
+                  counterText: "",
+                  filled: true,
+                  fillColor: const Color(0xFF2E2E2E),
+                  hintText: 'Enter Password',
+                  hintStyle: const TextStyle(
+                    color: Colors.grey,
+                    fontFamily: 'Roboto',
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          SizedBox(height: screenHeight * 0.05), // Spacer
+
+          // Buttons Row
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+            child: Row(
+              children: [
+                // Cancel Button
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Inter',
+                        fontSize: 20 * fontScale,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 16), // Space between buttons
+
+                // Confirm Button
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    onPressed: _validatePassword,
+                    child: Text(
+                      'Confirm',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 20 * fontScale,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
