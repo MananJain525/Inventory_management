@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventory_management_system/screens/Dashboard_Admin.dart';
 
 class PasswordScreen extends StatefulWidget {
   const PasswordScreen({Key? key}) : super(key: key);
@@ -16,7 +17,10 @@ class _PasswordScreenState extends State<PasswordScreen> {
   // Function to check the password and navigate
   void _validatePassword() {
     if (_passwordController.text == _adminPin) {
-      Navigator.pushNamed(context, '/dashboard_admin'); // Navigate to admin dashboard
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Incorrect password')),
