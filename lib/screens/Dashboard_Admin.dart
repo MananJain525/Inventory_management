@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
+import 'package:inventory_management_system/functions/Add_Items.dart';
+import 'package:inventory_management_system/functions/Remove_Inventory.dart';
+import 'package:inventory_management_system/functions/Remove_Location.dart';
 
 class DashboardAdmin extends StatelessWidget {
   const DashboardAdmin({Key? key}) : super(key: key);
@@ -41,17 +44,32 @@ class DashboardAdmin extends StatelessWidget {
                 DashboardButton(
                     iconPath: 'assets/icons/add_items.svg',
                     label: "ADD ITEMS",
-                    onPressed: () {}
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddItemsPage()),
+                      );
+                    }
                 ),
                 DashboardButton(
                     iconPath: 'assets/icons/remove_location.svg',
                     label: "REMOVE LOCATION",
-                    onPressed: () {}
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RemoveLoc()),
+                      );
+                    }
                 ),
                 DashboardButton(
                     iconPath: 'assets/icons/remove_items.svg',
                     label: "REMOVE ITEMS",
-                    onPressed: () {}
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RemoveInventory()),
+                      );
+                    }
                 )
               ],
             ),
