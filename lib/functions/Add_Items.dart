@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Confirm_Items.dart';
 
 class AddItemsPage extends StatefulWidget {
   const AddItemsPage({super.key});
@@ -8,13 +9,10 @@ class AddItemsPage extends StatefulWidget {
 }
 
 class _AddItemsPageState extends State<AddItemsPage> {
-  // Controllers and state variables
   final TextEditingController itemNameController = TextEditingController();
   String? selectedItemType;
   String? selectedLocation;
-  bool showSuccessMessage = false;
 
-  // Dropdown options
   final List<String> itemTypes = [
     'Microphones',
     'Cables',
@@ -35,12 +33,9 @@ class _AddItemsPageState extends State<AddItemsPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
-    // Reference design dimensions (for scale if needed)
     const designWidth = 440.0;
     const designHeight = 956.0;
 
-    // Scaling helpers (if needed for consistency)
     double scaleW(double px) => px / designWidth * screenWidth;
     double scaleH(double px) => px / designHeight * screenHeight;
 
@@ -70,85 +65,60 @@ class _AddItemsPageState extends State<AddItemsPage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(
-            left: scaleW(32),
-            right: scaleW(32),
-            top: scaleH(100),
-            bottom: scaleH(20),
+          padding: EdgeInsets.symmetric(
+            horizontal: scaleW(32),
+            vertical: scaleH(40),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ITEM NAME
               _buildLabel('ITEM NAME'),
               SizedBox(height: scaleH(6)),
               _buildTextField(controller: itemNameController),
 
               SizedBox(height: scaleH(40)),
 
-              // ITEM TYPE (Dropdown)
               _buildLabel('ITEM TYPE'),
               SizedBox(height: scaleH(6)),
-              _buildItemTypeDropdown(),
+              _buildDropdownField(
+                items: itemTypes,
+                value: selectedItemType,
+                onChanged: (value) => setState(() => selectedItemType = value),
+              ),
 
               SizedBox(height: scaleH(40)),
 
-              // LOCATION (Dropdown)
               _buildLabel('LOCATION'),
               SizedBox(height: scaleH(6)),
-              _buildLocationDropdown(),
+              _buildDropdownField(
+                items: locations,
+                value: selectedLocation,
+                onChanged: (value) => setState(() => selectedLocation = value),
+              ),
 
               SizedBox(height: scaleH(60)),
 
-              // ACTION BUTTONS
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildButton(
-                    label: 'Edit',
-                    onPressed: () {
-                      // TODO: Implement Edit functionality if needed
-                    },
-                    filled: false,
-                  ),
-                  _buildButton(
-                    label: 'Confirm',
-                    onPressed: () {
-                      // Validate inputs and show success message
-                      if (_validateInputs()) {
-                        setState(() => showSuccessMessage = true);
-                      }
-                    },
-                    filled: true,
-                  ),
-                ],
-              ),
-
-              // SUCCESS MESSAGE
-              if (showSuccessMessage)
-                Padding(
-                  padding: const EdgeInsets.only(top: 20),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'ADDED SUCCESSFULLY!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Inter',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 1.1,
+              Align(
+                alignment: Alignment.centerRight,
+                child: _buildButton(
+                  label: 'Next',
+                  onPressed: _validateInputs()
+                      ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConfirmItemsPage(
+                          itemName: itemNameController.text,
+                          itemType: selectedItemType!,
+                          location: selectedLocation!,
                         ),
                       ),
-                    ),
-                  ),
-                )
+                    );
+                  }
+                      : null,
+                  filled: true,
+                ),
+              )
             ],
           ),
         ),
@@ -156,14 +126,12 @@ class _AddItemsPageState extends State<AddItemsPage> {
     );
   }
 
-  // Validate input fields
   bool _validateInputs() {
     return itemNameController.text.isNotEmpty &&
         selectedItemType != null &&
         selectedLocation != null;
   }
 
-  // Section label builder
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -177,11 +145,9 @@ class _AddItemsPageState extends State<AddItemsPage> {
     );
   }
 
-  // General purpose text field
   Widget _buildTextField({required TextEditingController controller}) {
     return SizedBox(
-      width: double.infinity,
-      height: 53, // Fixed height per design
+      height: 53,
       child: TextField(
         controller: controller,
         style: const TextStyle(
@@ -197,95 +163,57 @@ class _AddItemsPageState extends State<AddItemsPage> {
             borderRadius: BorderRadius.circular(6),
             borderSide: BorderSide.none,
           ),
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
         ),
       ),
     );
   }
 
-  // Item Type Dropdown
-  Widget _buildItemTypeDropdown() {
-    return SizedBox(
-      width: double.infinity,
+  Widget _buildDropdownField({
+    required List<String> items,
+    required String? value,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
       height: 53,
-      child: DropdownButtonFormField<String>(
-        value: selectedItemType,
-        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-        dropdownColor: const Color(0xFF2E2E2E),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: const Color(0xFF2E2E2E),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide.none,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2E2E2E),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          dropdownColor: const Color(0xFF2E2E2E),
+          style: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 24,
+            color: Colors.white,
           ),
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          items: items.map((item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: SizedBox(
+                height: 48,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(item),
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          menuMaxHeight: 48.0 * 5, // Show max 5 items with scroll
         ),
-        style: const TextStyle(
-          fontFamily: 'Roboto',
-          fontSize: 24,
-          color: Colors.white,
-        ),
-        items: itemTypes.map((type) {
-          return DropdownMenuItem<String>(
-            value: type,
-            child: Text(type),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedItemType = value;
-          });
-        },
       ),
     );
   }
 
-  // Location Dropdown
-  Widget _buildLocationDropdown() {
-    return SizedBox(
-      width: double.infinity,
-      height: 53,
-      child: DropdownButtonFormField<String>(
-        value: selectedLocation,
-        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-        dropdownColor: const Color(0xFF2E2E2E),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: const Color(0xFF2E2E2E),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        ),
-        style: const TextStyle(
-          fontFamily: 'Roboto',
-          fontSize: 24,
-          color: Colors.white,
-        ),
-        items: locations.map((loc) {
-          return DropdownMenuItem<String>(
-            value: loc,
-            child: Text(loc),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedLocation = value;
-          });
-        },
-      ),
-    );
-  }
-
-  // Custom styled button (Edit/Confirm)
   Widget _buildButton({
     required String label,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required bool filled,
   }) {
     return ElevatedButton(
