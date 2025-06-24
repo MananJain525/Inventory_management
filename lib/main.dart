@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:inventory_management_system/screens/Startup.dart';
+import 'package:inventory_management_system/functions/Show_Inventory.dart';
 
 
 void main(){
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         theme: ThemeData.dark(),
         debugShowCheckedModeBanner: false,
-        home: const StartUp(),
+        home: const ShowInventory(),
         //home: StartUp()
     );
   }
