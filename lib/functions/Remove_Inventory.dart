@@ -10,7 +10,6 @@ class RemoveInventoryPage extends StatefulWidget {
 class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
   final TextEditingController _searchController = TextEditingController();
 
-  // Sample inventory data
   final List<Map<String, dynamic>> _selectedItems = [
     {'name': 'XLR Cables', 'qty': 4},
     {'name': '5 - 5 Cables', 'qty': 5},
@@ -21,7 +20,6 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
   ];
 
   bool _removed = false;
-  bool _showEditMode = false;
 
   // Responsive sizing
   late double screenWidth, screenHeight;
@@ -60,7 +58,6 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _removed = false;
-        _showEditMode = false;
         _selectedItems.clear();
       });
     });
@@ -125,19 +122,11 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
                 ),
               ),
             SizedBox(height: scaleH(10)),
-            if (!_showEditMode && !_removed)
-              _buildButton(label: 'REMOVE', filled: true, onPressed: () {
-                setState(() => _showEditMode = true);
-              }),
-            if (_showEditMode && !_removed)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildButton(label: 'Edit', filled: false, onPressed: () {
-                    setState(() => _showEditMode = false);
-                  }),
-                  _buildButton(label: 'Confirm', filled: true, onPressed: _confirmRemoval),
-                ],
+            if (!_removed)
+              _buildButton(
+                label: 'CONFIRM REMOVAL',
+                filled: true,
+                onPressed: _confirmRemoval,
               ),
           ],
         ),
@@ -250,4 +239,3 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
     );
   }
 }
-
