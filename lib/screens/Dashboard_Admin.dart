@@ -1,0 +1,80 @@
+import 'package:flutter/material.dart';
+import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
+import 'package:inventory_management_system/functions/Add_Items.dart';
+import 'package:inventory_management_system/functions/Remove_Inventory.dart';
+import 'package:inventory_management_system/functions/Remove_Location.dart';
+
+class DashboardAdmin extends StatelessWidget {
+  const DashboardAdmin({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+
+    double buttonWidth = screenWidth * 0.8;
+    if (buttonWidth > 400) buttonWidth = 400;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E1E1E),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: const Text("ADMIN OPTIONS"),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () {
+            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          },
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.account_circle_outlined),
+          )
+        ],
+      ),
+      body: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DashboardButton(
+                    iconPath: 'assets/icons/add_items.svg',
+                    label: "ADD ITEMS",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddItemsPage()),
+                      );
+                    }
+                ),
+                DashboardButton(
+                    iconPath: 'assets/icons/remove_location.svg',
+                    label: "REMOVE LOCATION",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RemoveLoc()),
+                      );
+                    }
+                ),
+                DashboardButton(
+                    iconPath: 'assets/icons/remove_items.svg',
+                    label: "REMOVE ITEMS",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RemoveInventory()),
+                      );
+                    }
+                )
+              ],
+            ),
+          )
+      ),
+    );
+  }
+}
