@@ -67,7 +67,7 @@ class DashboardAdmin extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RemoveInventory()),
+                        MaterialPageRoute(builder: (context) => const RemoveInventoryPage()),
                       );
                     }
                 )
