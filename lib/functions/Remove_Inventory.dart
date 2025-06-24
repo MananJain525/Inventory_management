@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-remove-inventory-page
 class RemoveInventoryPage extends StatefulWidget {
   const RemoveInventoryPage({super.key});
 
@@ -252,15 +251,3 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
   }
 }
 
-class RemoveInventory extends StatelessWidget {
-  const RemoveInventory({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(child: Text('yet to code')),
-    );
-  }
-}
-main
