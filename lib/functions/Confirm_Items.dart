@@ -25,24 +25,16 @@ class ConfirmItemsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'CONFIRM ITEMS',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            letterSpacing: 1.2,
-          ),
-        ),
+      appBar: SimpleAppBar(
+        title: 'ADD ITEMS',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
+      ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
