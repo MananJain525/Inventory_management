@@ -3,6 +3,7 @@ import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
 import 'package:inventory_management_system/functions/Add_Items.dart';
 import 'package:inventory_management_system/functions/Remove_Inventory.dart';
 import 'package:inventory_management_system/functions/Remove_Location.dart';
+import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class DashboardAdmin extends StatelessWidget {
   const DashboardAdmin({Key? key}) : super(key: key);
