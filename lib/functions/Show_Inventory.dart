@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
+          scaffoldBackgroundColor: const Color(0xFF1E1E1E)
       ),
       home: const ShowInventory(),
     );
@@ -88,55 +88,64 @@ class _ShowInventoryState extends State<ShowInventory> {
       appBar: AppBar(
         title: const Text("Show Inventory"),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
-              style: const TextStyle(color: Colors.white),
-              cursorColor: Colors.white,
-              decoration: InputDecoration(
-                hintText: 'Search',
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.grey[850],
-                border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 20), // Space below AppBar
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Color(0xFF2E2E2E),
+                  hintText: 'Search',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        searchQuery = "";
+                      });
+                    },
+                  )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
-                suffixIcon: searchQuery.isNotEmpty
-                    ? IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      searchQuery = '';
-                    });
-                  },
-                )
-                    : null,
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
               ),
             ),
-          ),
-
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: filteredData.map((entry) {
-                return InventorySection(
-                  title: entry.key,
-                  items: entry.value,
-                );
-              }).toList(),
+            const SizedBox(height: 20), // Spacing between search bar and list
+            Expanded(
+              child: ListView(
+                children: filteredData.map((entry) {
+                  return Card(
+                    color: Color(0xFF2E2E2E),
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 12),
+                    child: ExpansionTile(
+                      title: Text(entry.key),
+                      children: entry.value.entries.map((itemEntry) {
+                        return ListTile(
+                          title: Text(itemEntry.key),
+                          trailing: Text(itemEntry.value.toString()),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
