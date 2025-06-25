@@ -19,16 +19,16 @@ class DashboardAdmin extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text("ADMIN OPTIONS"),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-          },
-        ),
+      appBar: SimpleAppBar(
+        title: 'ADMIN',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
+      ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16.0),
