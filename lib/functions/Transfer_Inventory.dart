@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class TransferInventory extends StatelessWidget {
   const TransferInventory({super.key});
@@ -6,7 +7,16 @@ class TransferInventory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: SimpleAppBar(
+        title: 'TRANSFER INVENTORY',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
+      ),
       body: Center(child: Text('yet to code')),
     );
   }
