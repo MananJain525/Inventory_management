@@ -85,8 +85,15 @@ class _ShowInventoryState extends State<ShowInventory> {
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Show Inventory"),
+      appBar: SimpleAppBar(
+        title: 'SHOW INVENTORY',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 20), // Space below AppBar
