@@ -6,7 +6,16 @@ class RemoveLoc extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: SimpleAppBar(
+        title: 'REMOVE LOCATION',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
+      ),
       body: Center(child: Text('yet to code')),
     );
   }
