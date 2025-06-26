@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
 
+import '../screens/Dashboard.dart';
+
 class TransferInventory extends StatelessWidget {
   const TransferInventory({super.key});
 
