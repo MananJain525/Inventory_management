@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/screens/Dashboard_Admin.dart';
+import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class PasswordScreen extends StatefulWidget {
   const PasswordScreen({Key? key}) : super(key: key);
@@ -37,24 +38,16 @@ class _PasswordScreenState extends State<PasswordScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E), // Dark background color
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        centerTitle: true, // center align the title
-        title: const Text(
-          'ADMIN OPTIONS',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Inter',
-            fontSize: 24, // 24 logical pixels
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: SimpleAppBar(
+        title: 'ADMIN OPTIONS',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
+      ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16),
