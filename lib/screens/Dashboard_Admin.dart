@@ -3,6 +3,7 @@ import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
 import 'package:inventory_management_system/functions/Add_Items.dart';
 import 'package:inventory_management_system/functions/Remove_Inventory.dart';
 import 'package:inventory_management_system/functions/Remove_Location.dart';
+import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class DashboardAdmin extends StatelessWidget {
   const DashboardAdmin({Key? key}) : super(key: key);
@@ -19,16 +20,16 @@ class DashboardAdmin extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text("ADMIN OPTIONS"),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-          },
-        ),
+      appBar: SimpleAppBar(
+        title: 'ADMIN',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
+      ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16.0),

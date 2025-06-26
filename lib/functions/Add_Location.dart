@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventory_management_system/widgets/AppBar.dart';
 
 
 
@@ -76,20 +77,15 @@ class _AddLocState extends State<AddLoc> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF1E1E1E),
-      appBar: AppBar(
-        backgroundColor: Color(0xFF181818),
-        leading: const BackButton(),
-        title: const Text(
-          'ADD LOCATION',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {},
-          ),
-        ],
+      appBar: SimpleAppBar(
+        title: 'ADD LOCATION',
+        onBack: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Dashboard()),
+          );
+        },
+        onProfile: () {},
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
