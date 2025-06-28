@@ -52,7 +52,7 @@ class DashboardAdmin extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RemoveLoc()),
+                        MaterialPageRoute(builder: (context) => RemoveLoc()),
                       );
                     }
                 ),
