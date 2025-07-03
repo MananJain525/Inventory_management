@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/functions/Item_Selector.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TransferInventory extends StatefulWidget {
   const TransferInventory({super.key});
@@ -13,8 +14,27 @@ class _TransferInventoryState extends State<TransferInventory> {
   String fromLocation = 'Select';
   String toLocation = 'Select';
   TextEditingController searchController = TextEditingController();
-  List<String> location = ['Auditorium', 'CC Lab', 'Food King'];
+  List<String> locationNames = [];
+
   bool isTransferMode = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLocations();
+  }
+
+
+  Future<void> fetchLocations() async {
+    final snapshot = await FirebaseFirestore.instance.collection('locations').get();
+
+    setState(() {
+      locationNames = snapshot.docs
+          .map((doc) => doc['name'].toString())
+          .toList();
+    });
+  }
+
 
   @override
 
@@ -112,7 +132,7 @@ class _TransferInventoryState extends State<TransferInventory> {
                         value: 'Select',
                         child: Text('Select', style: TextStyle(color: Colors.white70)),
                       ),
-                      ...location.map((loc) { //
+                      ...locationNames.map((loc) { //
                         return DropdownMenuItem(
                           value: loc,
                           child: Text(loc, style: TextStyle(color: Colors.white)),
@@ -165,7 +185,7 @@ class _TransferInventoryState extends State<TransferInventory> {
                         value: 'Select',
                         child: Text('Select', style: TextStyle(color: Colors.white70)),
                       ),
-                      ...location.map((loc) { //
+                      ...locationNames.map((loc) { //
                         return DropdownMenuItem(
                           value: loc,
                           child: Text(loc, style: TextStyle(color: Colors.white)),

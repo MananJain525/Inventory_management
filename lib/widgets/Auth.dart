@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:inventory_management_system/screens/Dashboard.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class Auth extends StatelessWidget {
   const Auth({super.key});
@@ -25,12 +28,17 @@ class Auth extends StatelessWidget {
                 ),
                 SizedBox(height: screenSize.height * 0.05),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // Add Firebase here later
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Dashboard()),
-                    );
+                  onPressed: () async{
+
+                    bool islogged =await login();
+
+                    if(islogged) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const Dashboard()),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -58,5 +66,18 @@ class Auth extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<bool> login() async {
+    final user = await GoogleSignIn().signIn();
+
+    GoogleSignInAuthentication userAuth = await user!.authentication;
+
+    var credential = GoogleAuthProvider.credential(idToken: userAuth.idToken,accessToken: userAuth.accessToken);
+
+    await FirebaseAuth.instance.signInWithCredential(credential);
+
+    return FirebaseAuth.instance.currentUser != null;
+
   }
 }

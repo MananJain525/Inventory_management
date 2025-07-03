@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:inventory_management_system/screens/Startup.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
+void main() async {
+WidgetsFlutterBinding.ensureInitialized();
 
-void main(){
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]).then((onValue) => runApp(const MyApp()));
+await Firebase.initializeApp();
+
+await SystemChrome.setPreferredOrientations([
+DeviceOrientation.portraitUp,
+]);
+
+runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -19,7 +25,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData.dark(),
         debugShowCheckedModeBanner: false,
         home: const StartUp(),
-        //home: StartUp()
     );
   }
 }
