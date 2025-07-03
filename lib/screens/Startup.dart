@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/widgets/Auth.dart';
+import 'package:inventory_management_system/screens/Dashboard.dart';
 
 class StartUp extends StatefulWidget {
   const StartUp({super.key});
@@ -15,7 +16,7 @@ class _StartUpState extends State<StartUp> {
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Auth()),
+        MaterialPageRoute(builder: (context) => const Dashboard()),
       );
     });
   }
