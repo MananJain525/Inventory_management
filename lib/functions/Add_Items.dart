@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../screens/Dashboard.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../screens/Dashboard_Admin.dart';
 import 'Confirm_Items.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
 
@@ -12,10 +13,11 @@ class AddItemsPage extends StatefulWidget {
 
 class _AddItemsPageState extends State<AddItemsPage> {
   final TextEditingController itemNameController = TextEditingController();
+  int quantity = 1;
   String? selectedItemType;
   String? selectedLocation;
 
-  final List<String> itemTypes = [
+  List<String> itemTypes = [
     'Microphones',
     'Cables',
     'Speakers',
@@ -23,13 +25,22 @@ class _AddItemsPageState extends State<AddItemsPage> {
     'Miscellaneous',
   ];
 
-  final List<String> locations = [
-    'Auditorium',
-    'SAC',
-    'XYZ Common Room',
-    'Workshop Grounds',
-    'CC Lab',
-  ];
+  List<String> locations = [];
+  bool isLoadingLocations = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocations();
+  }
+
+  Future<void> _fetchLocations() async {
+    final snapshot = await FirebaseFirestore.instance.collection('locations').get();
+    setState(() {
+      locations = snapshot.docs.map((doc) => doc.id).toList();
+      isLoadingLocations = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +59,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
         onBack: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Dashboard()),
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
           );
         },
         onProfile: () {},
@@ -80,11 +91,19 @@ class _AddItemsPageState extends State<AddItemsPage> {
 
               _buildLabel('LOCATION'),
               SizedBox(height: scaleH(6)),
-              _buildDropdownField(
+              isLoadingLocations
+                  ? const Center(child: CircularProgressIndicator())
+                  : _buildDropdownField(
                 items: locations,
                 value: selectedLocation,
                 onChanged: (value) => setState(() => selectedLocation = value),
               ),
+
+              SizedBox(height: scaleH(40)),
+
+              _buildLabel('QUANTITY'),
+              SizedBox(height: scaleH(6)),
+              _buildQuantityInput(),
 
               SizedBox(height: scaleH(60)),
 
@@ -101,6 +120,7 @@ class _AddItemsPageState extends State<AddItemsPage> {
                           itemName: itemNameController.text,
                           itemType: selectedItemType!,
                           location: selectedLocation!,
+                          quantity: quantity,
                         ),
                       ),
                     );
@@ -119,7 +139,8 @@ class _AddItemsPageState extends State<AddItemsPage> {
   bool _validateInputs() {
     return itemNameController.text.isNotEmpty &&
         selectedItemType != null &&
-        selectedLocation != null;
+        selectedLocation != null &&
+        quantity > 0;
   }
 
   Widget _buildLabel(String text) {
@@ -195,8 +216,43 @@ class _AddItemsPageState extends State<AddItemsPage> {
             );
           }).toList(),
           onChanged: onChanged,
-          menuMaxHeight: 48.0 * 5, // Show max 5 items with scroll
+          menuMaxHeight: 48.0 * 5,
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityInput() {
+    return Container(
+      height: 53,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2E2E2E),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove, color: Colors.white),
+            onPressed: quantity > 1 ? () => setState(() => quantity--) : null,
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                '$quantity',
+                style: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 24,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () => setState(() => quantity++),
+          ),
+        ],
       ),
     );
   }

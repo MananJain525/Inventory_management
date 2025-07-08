@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:inventory_management_system/functions/Remove_Inventory.dart';
 import 'package:inventory_management_system/screens/Dashboard.dart';
 import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
 import 'package:inventory_management_system/functions/Add_Items.dart';
-import 'package:inventory_management_system/functions/Remove_Inventory.dart';
 import 'package:inventory_management_system/functions/Remove_Location.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
 

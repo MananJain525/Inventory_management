@@ -1,8 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
 import '../screens/Dashboard.dart';
-
-
 
 class AddLoc extends StatefulWidget {
   const AddLoc({super.key});
@@ -52,10 +51,30 @@ class _AddLocState extends State<AddLoc> {
               // CONFIRM Button
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    setState(() => _added = true);
+                  onPressed: () async {
+                    final locationName = _controller.text.trim();
+
+                    if (locationName.isEmpty) return;
+
+                    final locationDoc = FirebaseFirestore.instance.collection('locations').doc(locationName);
+
+                    try {
+                      // Create location document with a field `name`
+                      await locationDoc.set({'name': locationName});
+
+                      // Create initial inventory document `0` with Quantity 0
+                      await locationDoc.collection('inventory').doc('0').set({'Quantity': 0});
+
+                      Navigator.of(ctx).pop();
+                      setState(() => _added = true);
+                    } catch (e) {
+                      Navigator.of(ctx).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error adding location: $e')),
+                      );
+                    }
                   },
+
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_management_system/screens/Dashboard.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventory_management_system/screens/Dashboard_Admin.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class RemoveInventoryPage extends StatefulWidget {
@@ -12,66 +13,149 @@ class RemoveInventoryPage extends StatefulWidget {
 class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
   final TextEditingController _searchController = TextEditingController();
 
-  // Sample inventory data
-  final List<Map<String, dynamic>> _selectedItems = [
-    {'name': 'XLR Cables', 'qty': 4},
-    {'name': '5 - 5 Cables', 'qty': 5},
-    {'name': 'Stereo 5 - 3.5', 'qty': 1},
-    {'name': 'Yamaha DBR', 'qty': 2},
-    {'name': 'Yamaha DZR', 'qty': 0},
-    {'name': 'Power Cables', 'qty': 2},
-  ];
-
+  List<Map<String, dynamic>> _selectedItems = [];
   bool _removed = false;
   bool _showEditMode = false;
 
-  // Responsive sizing
   late double screenWidth, screenHeight;
   static const designWidth = 440.0;
   static const designHeight = 956.0;
+
   double scaleW(double px) => px / designWidth * screenWidth;
+
   double scaleH(double px) => px / designHeight * screenHeight;
 
-  void _addItem(String name) {
-    if (name.isEmpty) return;
-    if (!_selectedItems.any((item) => item['name'] == name)) {
+  @override
+  void initState() {
+    super.initState();
+    _loadInventory();
+  }
+
+  Future<void> _loadInventory() async {
+    try {
+      final invSnapshot = await FirebaseFirestore.instance
+          .collection('locations')
+          .doc('Auditorium')
+          .collection('inventory')
+          .get();
+
+      print('Fetched ${invSnapshot.docs.length} items');
+
+      for (var doc in invSnapshot.docs) {
+        print('Item: ${doc.data()}');
+      }
+
       setState(() {
-        _selectedItems.add({'name': name, 'qty': 0});
-        _searchController.clear();
+        _selectedItems = invSnapshot.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'docId': doc.id,
+            'name': data['Item Name'] ?? 'Unnamed',
+            'qty': data['Quantity'] ?? 0,
+            'removeQty': 0,
+          };
+        }).toList();
       });
+    } catch (e) {
+      print('Error loading inventory: $e');
     }
   }
 
-  void _incrementQty(int index) {
-    setState(() => _selectedItems[index]['qty']++);
-  }
 
-  void _decrementQty(int index) {
+  void _incrementQty(int index) {
     setState(() {
-      if (_selectedItems[index]['qty'] > 0) {
-        _selectedItems[index]['qty']--;
+      if (_selectedItems[index]['removeQty'] < _selectedItems[index]['qty']) {
+        _selectedItems[index]['removeQty']++;
       }
     });
   }
 
-  void _confirmRemoval() {
+  void _decrementQty(int index) {
+    setState(() {
+      if (_selectedItems[index]['removeQty'] > 0) {
+        _selectedItems[index]['removeQty']--;
+      }
+    });
+  }
+
+  void _confirmRemoval() async {
+    for (final item in _selectedItems) {
+      final int available = item['qty'];
+      final int toRemove = item['removeQty'];
+
+      if (toRemove > available) {
+        _showErrorDialog(
+            "Cannot remove more than available for ${item['name']}");
+        return;
+      }
+
+      if (toRemove > 0) {
+        final ref = FirebaseFirestore.instance
+            .collection('locations')
+            .doc('Auditorium')
+            .collection('inventory')
+            .doc(item['docId']);
+
+        final int updatedQty = available - toRemove;
+
+        if (updatedQty == 0) {
+          bool confirmDelete = await _showConfirmationDialog(
+              "All quantity for '${item['name']}' will be removed. Delete item completely?"
+          );
+          if (confirmDelete) {
+            await ref.delete();
+          } else {
+            // Optional: keep quantity as 0 if not deleting
+            await ref.update({'Quantity': 0});
+          }
+        } else {
+          await ref.update({'Quantity': updatedQty});
+        }
+      }
+    }
+
     setState(() {
       _removed = true;
     });
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       setState(() {
         _removed = false;
         _showEditMode = false;
-        _selectedItems.clear();
       });
+      await _loadInventory(); // refresh list
     });
+  }
+
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (_) =>
+          AlertDialog(
+            backgroundColor: Colors.black,
+            title: const Text('Error', style: TextStyle(color: Colors.red)),
+            content: Text(message, style: const TextStyle(color: Colors.white)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK', style: TextStyle(color: Colors.white)),
+              )
+            ],
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
@@ -80,7 +164,7 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
         onBack: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Dashboard()),
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
           );
         },
         onProfile: () {},
@@ -94,7 +178,17 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
           children: [
             _buildSearchBox(),
             SizedBox(height: scaleH(20)),
-            Expanded(child: _buildItemList()),
+            _selectedItems.isEmpty
+                ? const Expanded(
+              child: Center(
+                child: Text(
+                  "No inventory available.",
+                  style: TextStyle(color: Colors.white70, fontSize: 18),
+                ),
+              ),
+            )
+                : Expanded(child: _buildItemList()),
+
             if (_removed)
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -123,7 +217,9 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
                   _buildButton(label: 'Edit', filled: false, onPressed: () {
                     setState(() => _showEditMode = false);
                   }),
-                  _buildButton(label: 'Confirm', filled: true, onPressed: _confirmRemoval),
+                  _buildButton(label: 'Confirm',
+                      filled: true,
+                      onPressed: _confirmRemoval),
                 ],
               ),
           ],
@@ -149,10 +245,6 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
           hintText: 'Search item name...',
           hintStyle: const TextStyle(color: Colors.white60),
           prefixIcon: const Icon(Icons.search, color: Colors.white60),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () => _addItem(_searchController.text.trim()),
-          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: BorderSide.none,
@@ -174,13 +266,12 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
             color: const Color(0xFF2E2E2E),
             borderRadius: BorderRadius.circular(6),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          height: scaleH(56),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                item['name'],
+                '${item['name']} (Available: ${item['qty']})',
                 style: const TextStyle(
                   color: Colors.white,
                   fontFamily: 'Roboto',
@@ -188,20 +279,28 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
                 ),
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    onPressed: () => _decrementQty(index),
-                    icon: const Icon(Icons.remove, color: Colors.white),
-                    splashRadius: 20,
-                  ),
                   Text(
-                    '${item['qty']}',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                    'To remove: ${item['removeQty']}',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 18,
+                    ),
                   ),
-                  IconButton(
-                    onPressed: () => _incrementQty(index),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    splashRadius: 20,
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _decrementQty(index),
+                        icon: const Icon(Icons.remove, color: Colors.white),
+                        splashRadius: 20,
+                      ),
+                      IconButton(
+                        onPressed: () => _incrementQty(index),
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        splashRadius: 20,
+                      ),
+                    ],
                   ),
                 ],
               )
@@ -236,5 +335,32 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
       child: Text(label),
     );
   }
+
+  Future<bool> _showConfirmationDialog(String message) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (_) =>
+          AlertDialog(
+            backgroundColor: Colors.black,
+            title: const Text('Confirm', style: TextStyle(color: Colors.white)),
+            content: Text(
+                message, style: const TextStyle(color: Colors.white70)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                    'Cancel', style: TextStyle(color: Colors.white)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                    'Delete', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+    ) ??
+        false;
+  }
+
 }
 
