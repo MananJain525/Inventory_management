@@ -12,7 +12,7 @@ class Auth extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF1E1E1E),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
