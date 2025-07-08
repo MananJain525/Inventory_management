@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_management_system/screens/Dashboard.dart';
+import 'package:inventory_management_system/screens/Dashboard_Admin.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ConfirmRemoveScreen extends StatelessWidget {
-  final String location;
+  final String locationId;
+  final String locationName;
 
-  const ConfirmRemoveScreen({super.key, required this.location});
+  const ConfirmRemoveScreen({
+    super.key,
+    required this.locationId,
+    required this.locationName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +25,12 @@ class ConfirmRemoveScreen extends StatelessWidget {
     double scaleH(double px) => px / designHeight * screenHeight;
 
     return Scaffold(
-      appBar:  SimpleAppBar(
+      appBar: SimpleAppBar(
         title: 'REMOVE LOCATION',
         onBack: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Dashboard()),
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
           );
         },
         onProfile: () {},
@@ -58,7 +64,7 @@ class ConfirmRemoveScreen extends StatelessWidget {
               ),
               alignment: Alignment.centerLeft,
               child: Text(
-                location,
+                locationName,
                 style: TextStyle(
                   fontFamily: 'Roboto',
                   fontSize: scaleW(24),
@@ -89,7 +95,6 @@ class ConfirmRemoveScreen extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: scaleW(16),
-
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -100,8 +105,48 @@ class ConfirmRemoveScreen extends StatelessWidget {
                   width: screenWidth * 0.4,
                   height: scaleH(48),
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context, true);
+                    onPressed: () async {
+                      try {
+                        final firestore = FirebaseFirestore.instance;
+                        final docRef = firestore.collection('locations').doc(locationId);
+                        final docSnapshot = await docRef.get();
+
+                        if (!docSnapshot.exists) {
+                          throw Exception('Location not found');
+                        }
+
+                        final itemsSnapshot = await docRef.collection('inventory').get();
+
+                        final allZero = itemsSnapshot.docs.every((doc) {
+                          final quantity = doc['Quantity'];
+                          return quantity == 0;
+                        });
+
+                        if (!allZero) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Cannot delete: Some items have quantity > 0.'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
+                        }
+
+                        for (final item in itemsSnapshot.docs) {
+                          await item.reference.delete();
+                        }
+
+                        await docRef.delete();
+
+                        Navigator.pop(context, true);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to remove location: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -116,7 +161,6 @@ class ConfirmRemoveScreen extends StatelessWidget {
                         fontFamily: 'Inter',
                         fontSize: scaleW(19),
                         fontWeight: FontWeight.bold,
-
                       ),
                     ),
                   ),
