@@ -327,7 +327,7 @@ class _TransferInventoryState extends State<TransferInventory> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              'Item Transferred Successfully',
+                              'Transferred Successfully',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             backgroundColor: Colors.white,

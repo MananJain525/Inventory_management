@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
 import 'package:inventory_management_system/functions/Show_Inventory.dart';
 import 'package:inventory_management_system/functions/Transfer_Inventory.dart';
@@ -6,8 +7,38 @@ import 'package:inventory_management_system/functions/Add_Location.dart';
 import 'package:inventory_management_system/screens/Password_Screen.dart';
 import 'package:inventory_management_system/screens/Startup.dart';
 
-class Dashboard extends StatelessWidget {
+class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
+
+  @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  String userName = 'User'; // Default fallback
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserName();
+  }
+
+  void _getUserName() {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        // Try to get the first name from display name
+        String? displayName = user.displayName;
+        if (displayName != null && displayName.isNotEmpty) {
+          // Extract first name (everything before the first space)
+          userName = displayName.split(' ').first;
+        } else {
+          // Fallback to email if no display name
+          userName = user.email?.split('@').first ?? 'User';
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +52,13 @@ class Dashboard extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),
           onPressed: () {
+            // Sign out from Firebase before navigating
+            FirebaseAuth.instance.signOut();
             // Navigate to StartUp and clear the stack
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const StartUp()),
-              (route) => false,
+                  (route) => false,
             );
           },
         ),
@@ -55,11 +88,11 @@ class Dashboard extends StatelessWidget {
             SizedBox(
               height: screenWidth * 0.2,
               width: screenWidth * 0.8,
-              child: const FittedBox(
+              child: FittedBox(
                 fit: BoxFit.contain,
                 child: Text(
-                  'Welcome  User!',
-                  style: TextStyle(
+                  'Welcome $userName!',
+                  style: const TextStyle(
                     fontFamily: 'Caveat',
                     color: Colors.white,
                   ),
