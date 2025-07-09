@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_management_system/functions/Item_Selector.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventory_management_system/screens/Dashboard.dart';
+import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class TransferInventory extends StatefulWidget {
   const TransferInventory({super.key});
@@ -41,24 +43,15 @@ class _TransferInventoryState extends State<TransferInventory> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Color(0xFF1E1E1E),
-        appBar: AppBar(
-          backgroundColor: Color(0xFF181818),
-          centerTitle: true,
-          title: Text('Transfer Items'),
-          titleTextStyle: TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 24.0
-          ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: const [
-            Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(Icons.account_circle_outlined, color: Colors.white),
-            ),
-          ],
+        appBar: SimpleAppBar(
+          title: 'TRANSFER ITEMS',
+          onBack: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Dashboard()),
+            );
+          },
+          onProfile: () {},
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 20),

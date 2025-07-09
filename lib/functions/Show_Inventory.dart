@@ -108,6 +108,9 @@ class _ShowInventoryState extends State<ShowInventory> {
               padding:
               EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: TextField(
+                style: TextStyle(
+                  fontSize: screenWidth * 0.05
+                ),
                 controller: _searchController,
                 decoration: InputDecoration(
                   filled: true,

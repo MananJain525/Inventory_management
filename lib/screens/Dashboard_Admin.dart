@@ -22,7 +22,7 @@ class DashboardAdmin extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       appBar: SimpleAppBar(
-        title: 'ADMIN',
+        title: 'ADMIN OPTIONS',
         onBack: () {
           Navigator.pushReplacement(
             context,
