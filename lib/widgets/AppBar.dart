@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -19,7 +20,7 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: const Color(0xFF181818),
-      automaticallyImplyLeading: false, // hides default back button
+      automaticallyImplyLeading: false,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: onBack,
@@ -35,11 +36,28 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: true,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.person, color: Colors.white),
-          onPressed: onProfile,
+        StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            return IconButton(
+              icon: _buildProfileWidget(snapshot.data),
+              onPressed: onProfile,
+            );
+          },
         ),
       ],
     );
+  }
+  Widget _buildProfileWidget(User? user) {
+    if (user?.photoURL != null) {
+      return CircleAvatar(
+        radius: 16,
+        backgroundImage: NetworkImage(user!.photoURL!),
+        backgroundColor: Colors.grey[300],
+      );
+    } else {
+      // Fallback to default icon if no profile image
+      return const Icon(Icons.person, color: Colors.white);
+    }
   }
 }

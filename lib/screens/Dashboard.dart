@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:inventory_management_system/widgets/Dashboard_Button.dart';
 import 'package:inventory_management_system/functions/Show_Inventory.dart';
 import 'package:inventory_management_system/functions/Transfer_Inventory.dart';
@@ -34,9 +35,22 @@ class _DashboardState extends State<Dashboard> {
           userName = displayName.split(' ').first;
         } else {
           // Fallback to email if no display name
-          userName = user.email?.split('@').first ?? 'User';
+          userName = 'User';
         }
       });
+    }
+  }
+
+  Widget _buildProfileWidget(User? user) {
+    if (user?.photoURL != null) {
+      return CircleAvatar(
+        radius: 16,
+        backgroundImage: NetworkImage(user!.photoURL!),
+        backgroundColor: Colors.grey[300],
+      );
+    } else {
+      // Fallback to default icon if no profile image
+      return const Icon(Icons.person, color: Colors.white);
     }
   }
 
@@ -51,9 +65,10 @@ class _DashboardState extends State<Dashboard> {
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),
-          onPressed: () {
-            // Sign out from Firebase before navigating
-            FirebaseAuth.instance.signOut();
+          onPressed: () async {
+            // Sign out from both Google and Firebase
+            await GoogleSignIn().signOut();
+            await FirebaseAuth.instance.signOut();
             // Navigate to StartUp and clear the stack
             Navigator.pushAndRemoveUntil(
               context,
@@ -63,7 +78,7 @@ class _DashboardState extends State<Dashboard> {
           },
         ),
         title: const Text(
-          'Home Screen',
+          'HOME SCREEN',
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 20,
@@ -73,10 +88,15 @@ class _DashboardState extends State<Dashboard> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () {
-              // Placeholder for future profile action
+          StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              return IconButton(
+                icon: _buildProfileWidget(snapshot.data),
+                onPressed: () {
+                  // Placeholder for future profile action
+                },
+              );
             },
           ),
         ],
