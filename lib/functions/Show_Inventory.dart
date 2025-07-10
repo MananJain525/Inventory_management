@@ -13,7 +13,9 @@ class ShowInventory extends StatefulWidget {
 class _ShowInventoryState extends State<ShowInventory> {
   final TextEditingController _searchController = TextEditingController();
   String searchQuery = '';
-  Map<String, Map<String, int>> inventoryData = {};
+  String? selectedCategory;
+  Map<String, Map<String, Map<String, dynamic>>> inventoryData = {}; // Updated structure
+  Set<String> allCategories = {};
   bool isLoading = true;
 
   @override
@@ -29,7 +31,8 @@ class _ShowInventoryState extends State<ShowInventory> {
 
       print('Found ${locationsSnapshot.docs.length} locations');
 
-      final Map<String, Map<String, int>> tempData = {};
+      final Map<String, Map<String, Map<String, dynamic>>> tempData = {};
+      final Set<String> tempCategories = {};
 
       for (final locDoc in locationsSnapshot.docs) {
         print('Checking location: ${locDoc.id}');
@@ -49,9 +52,14 @@ class _ShowInventoryState extends State<ShowInventory> {
 
             final itemName = data['Item Name'];
             final quantity = data['Quantity'] ?? 0;
+            final category = data['Type'] ?? 'Uncategorized'; // Use 'Type' field specifically
 
             if (itemName != null && quantity > 0) {
-              tempData[locDoc.id]![itemName] = quantity;
+              tempData[locDoc.id]![itemName] = {
+                'quantity': quantity,
+                'category': category,
+              };
+              tempCategories.add(category);
             }
           }
         }
@@ -59,31 +67,128 @@ class _ShowInventoryState extends State<ShowInventory> {
 
       setState(() {
         inventoryData = tempData;
-        isLoading = false;  // ✅ Ensure this always runs
+        allCategories = tempCategories;
+        isLoading = false;
       });
 
       print('Inventory loaded: $inventoryData');
+      print('Categories found: $allCategories');
     } catch (e) {
       print('Error loading inventory: $e');
       setState(() => isLoading = false);
     }
   }
 
+  void _showCategoryFilter() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF2E2E2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Filter by Category',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                title: const Text(
+                  'All Categories',
+                  style: TextStyle(color: Colors.white),
+                ),
+                leading: Radio<String?>(
+                  value: null,
+                  groupValue: selectedCategory,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategory = value;
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+              ...allCategories.map((category) {
+                return ListTile(
+                  title: Text(
+                    category,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  leading: Radio<String?>(
+                    value: category,
+                    groupValue: selectedCategory,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value;
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
+    // Filter data based on search query and selected category
     final filteredData = inventoryData.entries.where((entry) {
       final locationName = entry.key.toLowerCase();
-      final matchesLocation =
-      locationName.contains(searchQuery.toLowerCase());
+      final matchesLocation = locationName.contains(searchQuery.toLowerCase());
 
-      final matchesItem = entry.value.keys.any(
-              (item) => item.toLowerCase().contains(searchQuery.toLowerCase()));
+      // Check if any item matches the search query and category filter
+      final matchesItem = entry.value.entries.any((itemEntry) {
+        final itemName = itemEntry.key.toLowerCase();
+        final itemCategory = itemEntry.value['category'] as String;
+
+        final matchesSearch = itemName.contains(searchQuery.toLowerCase()) ||
+            itemCategory.toLowerCase().contains(searchQuery.toLowerCase());
+
+        final matchesCategory = selectedCategory == null ||
+            itemCategory == selectedCategory;
+
+        return matchesSearch && matchesCategory;
+      });
 
       return matchesLocation || matchesItem;
-    }).toList();
+    }).map((entry) {
+      // Filter items within each location based on category
+      final filteredItems = <String, Map<String, dynamic>>{};
+
+      for (final itemEntry in entry.value.entries) {
+        final itemName = itemEntry.key.toLowerCase();
+        final itemCategory = itemEntry.value['category'] as String;
+
+        final matchesSearch = itemName.contains(searchQuery.toLowerCase()) ||
+            itemCategory.toLowerCase().contains(searchQuery.toLowerCase()) ||
+            entry.key.toLowerCase().contains(searchQuery.toLowerCase());
+
+        final matchesCategory = selectedCategory == null ||
+            itemCategory == selectedCategory;
+
+        if (matchesSearch && matchesCategory) {
+          filteredItems[itemEntry.key] = itemEntry.value;
+        }
+      }
+
+      return MapEntry(entry.key, filteredItems);
+    }).where((entry) => entry.value.isNotEmpty).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
@@ -100,54 +205,100 @@ class _ShowInventoryState extends State<ShowInventory> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding:
-        EdgeInsets.only(top: screenWidth * 0.1),
+        padding: EdgeInsets.only(top: screenWidth * 0.1),
         child: Column(
           children: [
             Padding(
-              padding:
-              EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: TextField(
-                style: TextStyle(
-                  fontSize: screenWidth * 0.05
-                ),
-                controller: _searchController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: const Color(0xFF2E2E2E),
-                  hintText: 'Search',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: searchQuery.isNotEmpty
-                      ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {
-                        searchQuery = "";
-                      });
-                    },
-                  )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      style: TextStyle(fontSize: screenWidth * 0.05),
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF2E2E2E),
+                        hintText: 'Search',
+                        hintStyle: const TextStyle(color: Colors.white54),
+                        prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.white54),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              searchQuery = "";
+                            });
+                          },
+                        )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchQuery = value;
+                        });
+                      },
+                    ),
                   ),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    searchQuery = value;
-                  });
-                },
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _showCategoryFilter,
+                    icon: Icon(
+                      Icons.filter_list,
+                      color: selectedCategory != null ? Colors.blue : Colors.white54,
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E2E2E),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: screenWidth * 0.1),
+            // Show active filter
+            if (selectedCategory != null)
+              Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.05,
+                  vertical: screenWidth * 0.025,
+                ),
+                child: Row(
+                  children: [
+                    Chip(
+                      label: Text(
+                        '$selectedCategory',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: const Color(0xFF3C3C3C),
+                      deleteIcon: const Icon(Icons.close, color: Colors.white),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      onDeleted: () {
+                        setState(() {
+                          selectedCategory = null;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            SizedBox(height: screenWidth * 0.04),
             Expanded(
               child: filteredData.isEmpty
-                  ? const Center(
+                  ? Center(
                 child: Text(
                   "No inventory matches your search.",
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 16,
+                    fontSize: screenWidth * 0.05,
                   ),
                 ),
               )
@@ -162,19 +313,41 @@ class _ShowInventoryState extends State<ShowInventory> {
                       title: Text(
                         entry.key,
                         style: TextStyle(
-                            fontSize: screenWidth * 0.0625),
+                          fontSize: screenWidth * 0.0625,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       children: entry.value.entries.map((itemEntry) {
+                        final itemData = itemEntry.value;
                         return ListTile(
                           title: Text(
                             itemEntry.key,
                             style: TextStyle(
-                                fontSize: screenWidth * 0.05),
+                              fontSize: screenWidth * 0.05,
+                              color: Colors.white,
+                            ),
                           ),
-                          trailing: Text(
-                            itemEntry.value.toString(),
+                          subtitle: Text(
+                            'Category: ${itemData['category']}',
                             style: TextStyle(
-                                fontSize: screenWidth * 0.05),
+                              fontSize: screenWidth * 0.035,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            child: Text(
+                              itemData['quantity'].toString(),
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.045,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         );
                       }).toList(),
