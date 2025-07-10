@@ -22,6 +22,9 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     super.initState();
     _getUserName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+    });
   }
 
   void _getUserName() {
@@ -102,70 +105,71 @@ class _DashboardState extends State<Dashboard> {
         ],
       ),
       body: Center(
-        child: Column(
-          children: [
-            SizedBox(height: screenWidth * 0.175),
-            SizedBox(
-              height: screenWidth * 0.2,
-              width: screenWidth * 0.8,
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: Text(
-                  'Welcome $userName!',
-                  style: const TextStyle(
-                    fontFamily: 'Caveat',
-                    color: Colors.white,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(
+                height: screenWidth * 0.2,
+                width: screenWidth * 0.8,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: Text(
+                    'Welcome $userName!',
+                    style: const TextStyle(
+                      fontFamily: 'Caveat',
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: screenWidth * 0.175),
-            DashboardButton(
-              iconPath: 'assets/icons/show_inventory.svg',
-              label: "SHOW INVENTORY",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ShowInventory()),
-                );
-              },
-            ),
-            DashboardButton(
-              iconPath: 'assets/icons/transfer_items.svg',
-              label: "TRANSFER ITEMS",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TransferInventory()),
-                );
-              },
-            ),
-            DashboardButton(
-              iconPath: 'assets/icons/add_location.svg',
-              label: "ADD LOCATION",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddLoc()),
-                );
-              },
-            ),
-            DashboardButton(
-              iconPath: 'assets/icons/history.svg',
-              label: "HISTORY",
-              onPressed: () {},
-            ),
-            DashboardButton(
-              iconPath: 'assets/icons/admin_options.svg',
-              label: "ADMIN OPTIONS",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PasswordScreen()),
-                );
-              },
-            ),
-          ],
+              SizedBox(height: screenWidth * 0.175),
+              DashboardButton(
+                iconPath: 'assets/icons/show_inventory.svg',
+                label: "SHOW INVENTORY",
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ShowInventory()),
+                  );
+                },
+              ),
+              DashboardButton(
+                iconPath: 'assets/icons/transfer_items.svg',
+                label: "TRANSFER ITEMS",
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TransferInventory()),
+                  );
+                },
+              ),
+              DashboardButton(
+                iconPath: 'assets/icons/add_location.svg',
+                label: "ADD LOCATION",
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AddLoc()),
+                  );
+                },
+              ),
+              DashboardButton(
+                iconPath: 'assets/icons/history.svg',
+                label: "HISTORY",
+                onPressed: () {},
+              ),
+              DashboardButton(
+                iconPath: 'assets/icons/admin_options.svg',
+                label: "ADMIN OPTIONS",
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PasswordScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
