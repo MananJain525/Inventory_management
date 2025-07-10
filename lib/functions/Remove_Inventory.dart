@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:inventory_management_system/screens/Dashboard_Admin.dart';
 import 'package:inventory_management_system/widgets/AppBar.dart';
 
 class RemoveInventoryPage extends StatefulWidget {
@@ -15,14 +14,12 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
 
   List<Map<String, dynamic>> _selectedItems = [];
   bool _removed = false;
-  bool _showEditMode = false;
 
   late double screenWidth, screenHeight;
   static const designWidth = 440.0;
   static const designHeight = 956.0;
 
   double scaleW(double px) => px / designWidth * screenWidth;
-
   double scaleH(double px) => px / designHeight * screenHeight;
 
   @override
@@ -39,12 +36,6 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
           .collection('inventory')
           .get();
 
-      print('Fetched ${invSnapshot.docs.length} items');
-
-      for (var doc in invSnapshot.docs) {
-        print('Item: ${doc.data()}');
-      }
-
       setState(() {
         _selectedItems = invSnapshot.docs.map((doc) {
           final data = doc.data();
@@ -60,7 +51,6 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
       print('Error loading inventory: $e');
     }
   }
-
 
   void _incrementQty(int index) {
     setState(() {
@@ -84,8 +74,7 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
       final int toRemove = item['removeQty'];
 
       if (toRemove > available) {
-        _showErrorDialog(
-            "Cannot remove more than available for ${item['name']}");
+        _showErrorDialog("Cannot remove more than available for ${item['name']}");
         return;
       }
 
@@ -100,12 +89,10 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
 
         if (updatedQty == 0) {
           bool confirmDelete = await _showConfirmationDialog(
-              "All quantity for '${item['name']}' will be removed. Delete item completely?"
-          );
+              "All quantity for '${item['name']}' will be removed. Delete item completely?");
           if (confirmDelete) {
             await ref.delete();
           } else {
-            // Optional: keep quantity as 0 if not deleting
             await ref.update({'Quantity': 0});
           }
         } else {
@@ -118,62 +105,45 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
       _removed = true;
     });
 
-    Future.delayed(const Duration(seconds: 2), () async {
-      setState(() {
-        _removed = false;
-        _showEditMode = false;
-      });
-      await _loadInventory(); // refresh list
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const RemoveInventoryPage()),
+      );
     });
   }
-
 
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (_) =>
-          AlertDialog(
-            backgroundColor: Colors.black,
-            title: const Text('Error', style: TextStyle(color: Colors.red)),
-            content: Text(message, style: const TextStyle(color: Colors.white)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
-              )
-            ],
-          ),
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.black,
+        title: const Text('Error', style: TextStyle(color: Colors.red)),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
+          )
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
-    screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       appBar: SimpleAppBar(
         title: 'REMOVE INVENTORY',
-        onBack: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
-          );
-        },
+        onBack: () => Navigator.pop(context),
         onProfile: () {},
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: scaleW(32),
-          vertical: scaleH(20),
-        ),
+        padding: EdgeInsets.symmetric(horizontal: scaleW(32), vertical: scaleH(20)),
         child: Column(
           children: [
             _buildSearchBox(),
@@ -188,7 +158,6 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
               ),
             )
                 : Expanded(child: _buildItemList()),
-
             if (_removed)
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -206,22 +175,8 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
                 ),
               ),
             SizedBox(height: scaleH(10)),
-            if (!_showEditMode && !_removed)
-              _buildButton(label: 'REMOVE', filled: true, onPressed: () {
-                setState(() => _showEditMode = true);
-              }),
-            if (_showEditMode && !_removed)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildButton(label: 'Edit', filled: false, onPressed: () {
-                    setState(() => _showEditMode = false);
-                  }),
-                  _buildButton(label: 'Confirm',
-                      filled: true,
-                      onPressed: _confirmRemoval),
-                ],
-              ),
+            if (!_removed)
+              _buildButton(label: 'CONFIRM', filled: true, onPressed: _confirmRemoval),
           ],
         ),
       ),
@@ -233,11 +188,7 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
       height: 53,
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(
-          fontFamily: 'Roboto',
-          fontSize: 20,
-          color: Colors.white,
-        ),
+        style: const TextStyle(fontFamily: 'Roboto', fontSize: 20, color: Colors.white),
         cursorColor: Colors.white,
         decoration: InputDecoration(
           filled: true,
@@ -328,9 +279,7 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
           fontSize: 18,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
       child: Text(label),
     );
@@ -339,28 +288,22 @@ class _RemoveInventoryPageState extends State<RemoveInventoryPage> {
   Future<bool> _showConfirmationDialog(String message) async {
     return await showDialog<bool>(
       context: context,
-      builder: (_) =>
-          AlertDialog(
-            backgroundColor: Colors.black,
-            title: const Text('Confirm', style: TextStyle(color: Colors.white)),
-            content: Text(
-                message, style: const TextStyle(color: Colors.white70)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text(
-                    'Cancel', style: TextStyle(color: Colors.white)),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                    'Delete', style: TextStyle(color: Colors.red)),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.black,
+        title: const Text('Confirm', style: TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white)),
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     ) ??
         false;
   }
-
 }
-
